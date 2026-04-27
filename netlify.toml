@@ -1,0 +1,3 @@
+[build]
+  command = "sed -i \"s|const SCRIPT_URL = 'APPS_SCRIPT_URL'|const SCRIPT_URL = '$APPS_SCRIPT_URL'|g\" index.html"
+  publish = "."
