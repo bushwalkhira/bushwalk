@@ -392,7 +392,8 @@
             };
             const result = await sheetsAPI('append', 'Donations', newDonation);
             if (result.success && result.receiptId) {
-                const savedDonation = { ...newDonation, receiptId: result.receiptId, status: 'Completed' };
+                const donor = donors.find(d => String(d.id) === String(currentDonation.donorId));
+                const savedDonation = { ...newDonation, receiptId: result.receiptId, status: 'Completed', donorName: donor?.name || '' };
                 setDonations(prev => [...prev, savedDonation]);
                 setCurrentDonation({ donorId: '', amount: '', date: '', mode: 'Online', transactionRef: '' });
                 alert(`Donation recorded! Receipt generated: ${result.receiptId}`);
@@ -654,7 +655,7 @@
         const months = getFYMonths(selectedFYStart); const fyLabel = `${selectedFYStart}-${String(selectedFYStart+1).slice(2)}`;
         const aggregatePayments = (payments, type)=>{ const agg={}; payments.forEach(p=>{ const catType=p.category?.toLowerCase(); if((type==='opex'&&catType!=='operational')||(type==='capex'&&catType!=='capital')) return; const month=normalizeMonth(p.date); const sub=p.subcategory||'Uncategorized'; if(!agg[month]) agg[month]={}; agg[month][sub]=(agg[month][sub]||0)+(parseFloat(p.amount)||0); }); return agg; };
         const paymentsOpexAgg = aggregatePayments(payments,'opex'); const paymentsCapexAgg = aggregatePayments(payments,'capex');
-        const mergeExpenses = (manualData, paymentAgg)=>{ const merged={...manualData}; for(const month in paymentAgg){ if(!merged[month]) merged[month]={}; for(const cat in paymentAgg[month]) merged[month][cat]=(merged[month][cat]||0)+paymentAgg[month][cat]; } return merged; };
+        const mergeExpenses = (manualData, paymentAgg)=>{ const merged={}; for(const month in manualData) merged[month]={...manualData[month]}; for(const month in paymentAgg){ if(!merged[month]) merged[month]={}; for(const cat in paymentAgg[month]) merged[month][cat]=(merged[month][cat]||0)+paymentAgg[month][cat]; } return merged; };
         const displayOpexData = mergeExpenses(opexData, paymentsOpexAgg); const displayCapexData = mergeExpenses(capexData, paymentsCapexAgg);
         const calculateYTD = (data, categories)=>{ const ytd={}; categories.forEach(cat=>{ ytd[cat]=months.reduce((sum,month)=>sum+(data[month]?.[cat]||0),0); }); return ytd; };
         const calculateMonthTotal = (monthData)=>Object.values(monthData||{}).reduce((sum,val)=>sum+val,0);
